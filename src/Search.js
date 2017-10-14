@@ -1,30 +1,86 @@
-import React, {Component} from "react";
+import React, {Component} from 'react'
+import {Link} from 'react-router-dom'
+import {PropTypes} from 'prop-types'
+import * as BooksAPI from "./BooksAPI";
+import Bookshelf from "./Bookshelf";
 
-class Search extends Component {
+export default class SearchPage extends Component {
+
+    state = {
+        books: [],
+        query: ''
+    }
+
+    mergeArr = (arr, Arr) => {
+        console.log(Arr)
+        return arr.map((item) => {
+            Arr.forEach((Item) => {
+                if (Item.id === item.id) {
+                    item.shelf = Item.shelf
+                    return
+                }
+            })
+            return item
+        })
+    }
+
+    updateQuery = (event) => {
+        const value = event.target.value.trim()
+        this.setState({query: value})
+        this.searchData(value)
+    }
+
+    searchData = (value) => {
+        if (value.length !== 0) {
+            BooksAPI.search(value, 10).then((books) => {
+                if (books.length > 0) {
+                    books = books.filter((book) => book.imageLinks)
+                    books = this.mergeArr(books,this.props.myBooks)
+                    this.setState({books})
+                }
+                else {
+                    this.setState({books: []})
+                }
+            })
+        } else {
+            this.setState({books: [], query: ''})
+        }
+    }
+
+    static propTypes = {
+        myBooks: PropTypes.arrayOf(PropTypes.shape({
+            title: PropTypes.string.isRequired,
+            shelf: PropTypes.string.isRequired,
+            imageLinks: PropTypes.object.isRequired,
+            authors: PropTypes.arrayOf(PropTypes.string.isRequired),
+            id: PropTypes.string.isRequired
+        })),
+        onReload: PropTypes.func.isRequired
+    }
+
     render() {
+        const books = this.state.books
+        const query = this.state.query
         return (
-            <div className="search-books">
-                <div className="search-books-bar">
-                    <a className="close-search" onClick={() => this.setState({showSearchPage: false})}>Close</a>
-                    <div className="search-books-input-wrapper">
-                        {/*
-                         NOTES: The search from BooksAPI is limited to a particular set of search terms.
-                         You can find these search terms here:
-                         https://github.com/udacity/reactnd-project-myreads-starter/blob/master/SEARCH_TERMS.md
-
-                         However, remember that the BooksAPI.search method DOES search by title or author. So, don't worry if
-                         you don't find a specific author or title. Every search is limited by search terms.
-                         */}
-                        <input type="text" placeholder="Search by title or author"/>
-
+            <div>
+                <div className="search-books">
+                    <div className="search-books-bar">
+                        <Link className="close-search" to="/">Close</Link>
+                        <div className="search-books-input-wrapper">
+                            <input type="text"
+                                   placeholder="Search by title or author"
+                                   value={query}
+                                   onChange={this.updateQuery}
+                            />
+                        </div>
+                    </div>
+                    <div className="search-books-results">
+                        <ol className="books-grid"></ol>
                     </div>
                 </div>
-                <div className="search-books-results">
-                    <ol className="books-grid"></ol>
-                </div>
+                {this.state.query !== '' && books.length > 0 && (<Bookshelf title="Search Results" books={books}
+                                                                            onReload={(shelf, book) => this.props.onReload(shelf, book)}/>)}
             </div>
         )
     }
 }
-
-export default Search
