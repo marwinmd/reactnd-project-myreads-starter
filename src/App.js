@@ -45,7 +45,6 @@ class BooksApp extends React.Component {
                             myBooks={this.state.books}
                             onReload={(id, shelf) => {
                                 this.changeShelf(id, shelf)
-                                history.push('/')
                             }}
                         />
                     )}

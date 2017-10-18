@@ -30,7 +30,11 @@ class Book extends Component {
 }
 
 Book.propTypes = {
-    title: PropTypes.string
+    title: PropTypes.string,
+    imageLinks: PropTypes.object,
+    authors: PropTypes.array,
+    onReload: PropTypes.func.isRequired,
+    shelf: PropTypes.string
 }
 
 export default Book

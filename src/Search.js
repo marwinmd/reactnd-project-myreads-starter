@@ -3,6 +3,7 @@ import {Link} from 'react-router-dom'
 import {PropTypes} from 'prop-types'
 import * as BooksAPI from "./BooksAPI";
 import Bookshelf from "./Bookshelf";
+import {debounce} from "throttle-debounce"
 
 export default class SearchPage extends Component {
 
@@ -12,12 +13,13 @@ export default class SearchPage extends Component {
     }
 
     mergeArr = (arr, Arr) => {
-        console.log(Arr)
         return arr.map((item) => {
             Arr.forEach((Item) => {
                 if (Item.id === item.id) {
                     item.shelf = Item.shelf
                     return
+                }else{
+                    item.shelf = 'none'
                 }
             })
             return item
@@ -32,16 +34,16 @@ export default class SearchPage extends Component {
 
     searchData = (value) => {
         if (value.length !== 0) {
-            BooksAPI.search(value, 10).then((books) => {
+            debounce(200, BooksAPI.search(value, 10).then((books) => {
                 if (books.length > 0) {
                     books = books.filter((book) => book.imageLinks)
-                    books = this.mergeArr(books,this.props.myBooks)
+                    books = this.mergeArr(books, this.props.myBooks)
                     this.setState({books})
                 }
                 else {
                     this.setState({books: []})
                 }
-            })
+            }))
         } else {
             this.setState({books: [], query: ''})
         }
